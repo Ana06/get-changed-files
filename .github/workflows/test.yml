@@ -1,7 +1,6 @@
 name: Test
 
 on:
-  workflow_dispatch:
   pull_request:
   push:
     branches:
@@ -87,6 +86,7 @@ jobs:
         name: Run the action
         uses: ./
         with:
+          format: ''
           glob-filter: '*'
 
       - name: Print files
@@ -102,6 +102,7 @@ jobs:
         name: Run the action
         uses: ./
         with:
+          format: ''
           glob-filter: |
             *.yml
             !.github/*/*.yml
