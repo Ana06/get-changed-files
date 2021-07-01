@@ -1,16 +1,18 @@
+# get-changed-files
+
 [![CI status](https://github.com/Ana06/get-changed-files/workflows/Test/badge.svg)](https://github.com/Ana06/get-changed-files/actions?query=event%3Apush+branch%3Amain)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.txt)
 
-This project is a fork of https://github.com/jitterbit/get-changed-files, which supports `pull_request_target`, allow to filter files using regular expressions and removes the ahead check.
+This project is a fork of <https://github.com/jitterbit/get-changed-files>, which supports `pull_request_target`, allow to filter files using regular expressions and removes the ahead check.
 
-# Get All Changed Files
+## Get All Changed Files
 
 Get all of the files changed/modified in a pull request (`pull_request` or `pull_request_target`) or push's commits.
 You can choose to get all changed files, only added files, only modified files, only removed files, only renamed files, or all added and modified files.
 These outputs are available via the `steps` output context.
 The `steps` output context exposes the output names `all`, `added`, `modified`, `removed`, `renamed`, and `added_modified`.
 
-# Usage
+## Usage
 
 See [action.yml](action.yml)
 
@@ -22,16 +24,23 @@ See [action.yml](action.yml)
     # Default: 'space-delimited'
     format: ''
     # Filter files using a regex
-    filter: '*'
+    glob-filter: '*'
 ```
 
-# Scenarios
+## Scenarios
 
-- [Get all changed files as space-delimited](#get-all-changed-files-as-space-delimited)
-- [Get all added and modified files as CSV](#get-all-added-and-modified-files-as-csv)
-- [Get all removed files as JSON](#get-all-removed-files-as-json)
+- [get-changed-files](#get-changed-files)
+  - [Get All Changed Files](#get-all-changed-files)
+  - [Usage](#usage)
+  - [Scenarios](#scenarios)
+    - [Get all changed files as space-delimited](#get-all-changed-files-as-space-delimited)
+    - [Get all changed *.yml files but exclude .github/*/*.yml files](#get-all-changed-yml-files-but-exclude-githubyml-files)
+    - [Get all added and modified files as CSV](#get-all-added-and-modified-files-as-csv)
+    - [Get all removed files as JSON](#get-all-removed-files-as-json)
+  - [Install, Build, Lint, Test, and Package](#install-build-lint-test-and-package)
+  - [License](#license)
 
-## Get all changed files as space-delimited
+### Get all changed files as space-delimited
 
 If there are any files with spaces in them, then this method won't work and the step will fail.
 Consider using one of the other formats if that's the case.
@@ -40,14 +49,33 @@ Consider using one of the other formats if that's the case.
 - id: files
   uses: Ana06/get-changed-files@v1.2
   with:
-    filter: '*.php'
+    glob-filter: '*.php'
 - run: |
     for changed_file in ${{ steps.files.outputs.all }}; do
       echo "Do something with this ${changed_file}."
     done
 ```
 
-## Get all added and modified files as CSV
+### Get all changed *.yml files but exclude .github/*/*.yml files
+
+Be careful that the order of the glob has an importance.
+Therefore, including all YML files first and excluding the YML files of your `.github/*/` directories is the way to go to exclude them.
+If those two globs were inverted, you **would** include all the YML files, with the ones in your `.github/*/` directories.
+
+```yaml
+- uses: Ana06/get-changed-files@v1.2
+  with:
+    # Format of the steps output context.
+    # Can be 'space-delimited', 'csv', or 'json'.
+    # Default: 'space-delimited'
+    format: ''
+    # Filter files using a regex
+    glob-filter: |
+      *.yml
+      !.github/*/*.yml
+```
+
+### Get all added and modified files as CSV
 
 ```yaml
 - id: files
@@ -61,7 +89,7 @@ Consider using one of the other formats if that's the case.
     done
 ```
 
-## Get all removed files as JSON
+### Get all removed files as JSON
 
 ```yaml
 - id: files
@@ -75,15 +103,15 @@ Consider using one of the other formats if that's the case.
     done
 ```
 
-# Install, Build, Lint, Test, and Package
+## Install, Build, Lint, Test, and Package
 
 Make sure to do the following before checking in any code changes.
 
 ```bash
-$ yarn
-$ yarn all
+yarn
+yarn all
 ```
 
-# License
+## License
 
 The scripts and documentation in this project are released under the [MIT License](LICENSE)
