@@ -20,7 +20,7 @@ inputs:
       Can be 'space-delimited', 'csv', or 'json'.
     required: true
     default: space-delimited
-  filter:
+  glob-filter:
     required: true
     default: '*'
 outputs:
