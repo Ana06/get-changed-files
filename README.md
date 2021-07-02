@@ -17,7 +17,7 @@ The `steps` output context exposes the output names `all`, `added`, `modified`, 
 See [action.yml](action.yml)
 
 ```yaml
-- uses: Ana06/get-changed-files@v1.2
+- uses: Ana06/get-changed-files@v2.0.0
   with:
     # Format of the steps output context.
     # Can be 'space-delimited', 'csv', or 'json'.
@@ -47,7 +47,7 @@ Consider using one of the other formats if that's the case.
 
 ```yaml
 - id: files
-  uses: Ana06/get-changed-files@v1.2
+  uses: Ana06/get-changed-files@v2.0.0
   with:
     glob-filter: '*.php'
 - run: |
@@ -63,7 +63,7 @@ Therefore, including all YML files first and excluding the YML files of your `.g
 If those two globs were inverted, you **would** include all the YML files, with the ones in your `.github/*/` directories.
 
 ```yaml
-- uses: Ana06/get-changed-files@v1.2
+- uses: Ana06/get-changed-files@v2.0.0
   with:
     # Format of the steps output context.
     # Can be 'space-delimited', 'csv', or 'json'.
@@ -79,9 +79,10 @@ If those two globs were inverted, you **would** include all the YML files, with 
 
 ```yaml
 - id: files
-  uses: Ana06/get-changed-files@v1.2
+  uses: Ana06/get-changed-files@v2.0.0
   with:
     format: 'csv'
+    glob-filter: '*'
 - run: |
     mapfile -d ',' -t added_modified_files < <(printf '%s,' '${{ steps.files.outputs.added_modified }}')
     for added_modified_file in "${added_modified_files[@]}"; do
@@ -93,9 +94,10 @@ If those two globs were inverted, you **would** include all the YML files, with 
 
 ```yaml
 - id: files
-  uses: Ana06/get-changed-files@v1.2
+  uses: Ana06/get-changed-files@v2.0.0
   with:
     format: 'json'
+    glob-filter: '*'
 - run: |
     readarray -t removed_files <<<"$(jq -r '.[]' <<<'${{ steps.files.outputs.removed }}')"
     for removed_file in ${removed_files[@]}; do
