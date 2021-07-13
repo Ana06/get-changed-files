@@ -83,7 +83,7 @@ async function run(): Promise<void> {
         const pattern = item
         core.debug(`Test ${file.filename} against ${pattern}`)
         core.debug(`current match value: ${match}`)
-        if (pattern.includes('!')) {
+        if (pattern.startsWith('!')) {
           match = match && minimatch(file.filename, pattern, {matchBase: true, dot: true})
         } else {
           match = match || minimatch(file.filename, pattern, {matchBase: true, dot: true})
