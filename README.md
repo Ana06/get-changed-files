@@ -24,7 +24,7 @@ See [action.yml](action.yml)
     # Default: 'space-delimited'
     format: ''
     # Filter files using a regex
-    glob-filter: '*'
+    filter: '*'
 ```
 
 ## Scenarios
@@ -49,7 +49,7 @@ Consider using one of the other formats if that's the case.
 - id: files
   uses: Ana06/get-changed-files@v2.0.0
   with:
-    glob-filter: '*.php'
+    filter: '*.php'
 - run: |
     for changed_file in ${{ steps.files.outputs.all }}; do
       echo "Do something with this ${changed_file}."
@@ -70,7 +70,7 @@ If those two globs were inverted, you **would** include all the YML files, with 
     # Default: 'space-delimited'
     format: ''
     # Filter files using a regex
-    glob-filter: |
+    filter: |
       *.yml
       !.github/*/*.yml
 ```
@@ -82,7 +82,7 @@ If those two globs were inverted, you **would** include all the YML files, with 
   uses: Ana06/get-changed-files@v2.0.0
   with:
     format: 'csv'
-    glob-filter: '*'
+    filter: '*'
 - run: |
     mapfile -d ',' -t added_modified_files < <(printf '%s,' '${{ steps.files.outputs.added_modified }}')
     for added_modified_file in "${added_modified_files[@]}"; do
@@ -97,7 +97,7 @@ If those two globs were inverted, you **would** include all the YML files, with 
   uses: Ana06/get-changed-files@v2.0.0
   with:
     format: 'json'
-    glob-filter: '*'
+    filter: '*'
 - run: |
     readarray -t removed_files <<<"$(jq -r '.[]' <<<'${{ steps.files.outputs.removed }}')"
     for removed_file in ${removed_files[@]}; do

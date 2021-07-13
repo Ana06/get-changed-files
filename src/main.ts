@@ -10,7 +10,7 @@ async function run(): Promise<void> {
     // Create GitHub client with the API token.
     const client = new GitHub(core.getInput('token', {required: true}))
     const format = core.getInput('format', {required: true}) as Format
-    const globFilter = core.getMultilineInput('glob-filter', {required: true}) || '*'
+    const filter = core.getMultilineInput('gfilter', {required: true}) || '*'
 
     // Ensure that the format parameter is set properly.
     if (format !== 'space-delimited' && format !== 'csv' && format !== 'json') {
@@ -79,7 +79,7 @@ async function run(): Promise<void> {
 
     const files = response.data.files.filter(file => {
       let match = false
-      for (const item of globFilter) {
+      for (const item of filter) {
         const pattern = item
         core.debug(`Test ${file.filename} against ${pattern}`)
         core.debug(`current match value: ${match}`)
