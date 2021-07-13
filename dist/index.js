@@ -4527,7 +4527,7 @@ function run() {
             // Create GitHub client with the API token.
             const client = new github_1.GitHub(core.getInput('token', { required: true }));
             const format = core.getInput('format', { required: true });
-            const globFilter = core.getMultilineInput('glob-filter', { required: true }) || '*';
+            const filter = core.getMultilineInput('filter', { required: true }) || '*';
             // Ensure that the format parameter is set properly.
             if (format !== 'space-delimited' && format !== 'csv' && format !== 'json') {
                 core.setFailed(`Format must be one of 'string-delimited', 'csv', or 'json', got '${format}'.`);
@@ -4579,11 +4579,11 @@ function run() {
             }
             const files = response.data.files.filter(file => {
                 let match = false;
-                for (const item of globFilter) {
+                for (const item of filter) {
                     const pattern = item;
                     core.debug(`Test ${file.filename} against ${pattern}`);
                     core.debug(`current match value: ${match}`);
-                    if (pattern.includes('!')) {
+                    if (pattern.startsWith('!')) {
                         match = match && minimatch_1.default(file.filename, pattern, { matchBase: true, dot: true });
                     }
                     else {

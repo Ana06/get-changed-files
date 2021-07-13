@@ -10,7 +10,7 @@ async function run(): Promise<void> {
     // Create GitHub client with the API token.
     const client = new GitHub(core.getInput('token', {required: true}))
     const format = core.getInput('format', {required: true}) as Format
-    const filter = core.getMultilineInput('gfilter', {required: true}) || '*'
+    const filter = core.getMultilineInput('filter', {required: true}) || '*'
 
     // Ensure that the format parameter is set properly.
     if (format !== 'space-delimited' && format !== 'csv' && format !== 'json') {
