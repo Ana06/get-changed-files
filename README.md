@@ -23,7 +23,7 @@ See [action.yml](action.yml)
     # Can be 'space-delimited', 'csv', or 'json'.
     # Default: 'space-delimited'
     format: ''
-    # Filter files using a regex
+    # Filter files using a glob filter
     filter: '*'
 ```
 
@@ -34,6 +34,7 @@ See [action.yml](action.yml)
   - [Usage](#usage)
   - [Scenarios](#scenarios)
     - [Get all changed files as space-delimited](#get-all-changed-files-as-space-delimited)
+    - [Get all changed *.php files as space-delimited](#get-all-changed-php-files-as-space-delimited)
     - [Get all changed *.yml files but exclude .github/*/*.yml files](#get-all-changed-yml-files-but-exclude-githubyml-files)
     - [Get all added and modified files as CSV](#get-all-added-and-modified-files-as-csv)
     - [Get all removed files as JSON](#get-all-removed-files-as-json)
@@ -41,6 +42,20 @@ See [action.yml](action.yml)
   - [License](#license)
 
 ### Get all changed files as space-delimited
+
+If there are any files with spaces in them, then this method won't work and the step will fail.
+Consider using one of the other formats if that's the case.
+
+```yaml
+- id: files
+  uses: Ana06/get-changed-files@v2.0.0
+- run: |
+    for changed_file in ${{ steps.files.outputs.all }}; do
+      echo "Do something with this ${changed_file}."
+    done
+```
+
+### Get all changed *.php files as space-delimited
 
 If there are any files with spaces in them, then this method won't work and the step will fail.
 Consider using one of the other formats if that's the case.
@@ -65,11 +80,6 @@ If those two globs were inverted, you **would** include all the YML files, with 
 ```yaml
 - uses: Ana06/get-changed-files@v2.0.0
   with:
-    # Format of the steps output context.
-    # Can be 'space-delimited', 'csv', or 'json'.
-    # Default: 'space-delimited'
-    format: ''
-    # Filter files using a regex
     filter: |
       *.yml
       !.github/*/*.yml
