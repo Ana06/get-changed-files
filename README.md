@@ -35,6 +35,10 @@ See [action.yml](action.yml)
     format: ''
     # Filter files using a glob filter
     filter: '*'
+    # Wrap output with quotes. Only applies to 'space-delimited' and 'csv' formats.
+    # Can be 'none', 'single', or 'double'.
+    # Default: 'none'
+    quotes: 'none'
 ```
 
 ### Filtering

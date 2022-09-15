@@ -4,6 +4,30 @@ import minimatch from 'minimatch'
 
 type Format = 'space-delimited' | 'csv' | 'json'
 type FileStatus = 'added' | 'modified' | 'removed' | 'renamed'
+type Quotes = 'none' | 'double' | 'single'
+
+function getQuoter(quotes: Quotes): (files: readonly string[]) => readonly string[] {
+  switch (quotes) {
+    case 'none':
+      return files => files
+    case 'single':
+      return files => files.map(file => `'${file}'`)
+    case 'double':
+      return files => files.map(file => `"${file}"`)
+  }
+}
+
+function getFormatter(format: Format, quotes: Quotes): (files: readonly string[]) => string {
+  const quoter = getQuoter(quotes)
+  switch (format) {
+    case 'space-delimited':
+      return files => quoter(files).join(' ')
+    case 'csv':
+      return files => quoter(files).join(',')
+    case 'json':
+      return files => JSON.stringify(files)
+  }
+}
 
 async function run(): Promise<void> {
   try {
@@ -11,10 +35,16 @@ async function run(): Promise<void> {
     const client = new GitHub(core.getInput('token', {required: true}))
     const format = core.getInput('format', {required: true}) as Format
     const filter = core.getMultilineInput('filter', {required: true}) || '*'
+    const quotes = (core.getInput('quotes', {}) || 'none') as Quotes
 
     // Ensure that the format parameter is set properly.
     if (format !== 'space-delimited' && format !== 'csv' && format !== 'json') {
       core.setFailed(`Format must be one of 'string-delimited', 'csv', or 'json', got '${format}'.`)
+    }
+
+    // Ensure that the quotes parameter is set properly.
+    if (quotes !== 'none' && quotes !== 'single' && quotes !== 'double') {
+      core.setFailed(`Quotes must be one of 'none', 'single', or 'double', got '${quotes}'.`)
     }
 
     // Debug log the payload.
@@ -137,46 +167,47 @@ async function run(): Promise<void> {
       }
     }
 
-    // Format the arrays of changed files.
-    let allFormatted: string,
-      addedFormatted: string,
-      modifiedFormatted: string,
-      removedFormatted: string,
-      renamedFormatted: string,
-      addedModifiedFormatted: string
-    switch (format) {
-      case 'space-delimited':
-        // If any of the filenames have a space in them, then fail the step.
-        for (const file of all) {
-          if (file.includes(' '))
-            core.setFailed(
-              `One of your files includes a space. Consider using a different output format or removing spaces from your filenames.`
-            )
-        }
-        allFormatted = all.join(' ')
-        addedFormatted = added.join(' ')
-        modifiedFormatted = modified.join(' ')
-        removedFormatted = removed.join(' ')
-        renamedFormatted = renamed.join(' ')
-        addedModifiedFormatted = addedModified.join(' ')
-        break
-      case 'csv':
-        allFormatted = all.join(',')
-        addedFormatted = added.join(',')
-        modifiedFormatted = modified.join(',')
-        removedFormatted = removed.join(',')
-        renamedFormatted = renamed.join(',')
-        addedModifiedFormatted = addedModified.join(',')
-        break
-      case 'json':
-        allFormatted = JSON.stringify(all)
-        addedFormatted = JSON.stringify(added)
-        modifiedFormatted = JSON.stringify(modified)
-        removedFormatted = JSON.stringify(removed)
-        renamedFormatted = JSON.stringify(renamed)
-        addedModifiedFormatted = JSON.stringify(addedModified)
-        break
+    if (format === 'space-delimited') {
+      // If any of the filenames have a space in them, then fail the step.
+      for (const file of all) {
+        if (file.includes(' '))
+          core.setFailed(
+            `One of your files includes a space. Consider using a different output format or removing spaces from your filenames.`
+          )
+      }
     }
+
+    if (quotes === 'single') {
+      // If any of the filenames have a single quote in it, then fail the step.
+      for (const file of all) {
+        if (file.includes("'")) {
+          core.setFailed(
+            `One of your files includes a single quote. Consider using a different quotes option or removing single quotes from your filenames.`
+          )
+        }
+      }
+    }
+
+    if (quotes === 'double') {
+      // If any of the filenames have a double quote in it, then fail the step.
+      for (const file of all) {
+        if (file.includes('"')) {
+          core.setFailed(
+            `One of your files includes a double quote. Consider using a different quotes option or removing double quotes from your filenames.`
+          )
+        }
+      }
+    }
+
+    // Format the arrays of changed files.
+    const formatter = getFormatter(format, quotes)
+
+    const allFormatted = formatter(all)
+    const addedFormatted = formatter(added)
+    const modifiedFormatted = formatter(modified)
+    const removedFormatted = formatter(removed)
+    const renamedFormatted = formatter(renamed)
+    const addedModifiedFormatted = formatter(addedModified)
 
     // Log the output values.
     core.info(`All: ${allFormatted}`)

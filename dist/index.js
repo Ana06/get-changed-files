@@ -4520,6 +4520,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(__webpack_require__(470));
 const github_1 = __webpack_require__(469);
 const minimatch_1 = __importDefault(__webpack_require__(93));
+function getQuoter(quotes) {
+    switch (quotes) {
+        case 'none':
+            return files => files;
+        case 'single':
+            return files => files.map(file => `'${file}'`);
+        case 'double':
+            return files => files.map(file => `"${file}"`);
+    }
+}
+function getFormatter(format, quotes) {
+    const quoter = getQuoter(quotes);
+    switch (format) {
+        case 'space-delimited':
+            return files => quoter(files).join(' ');
+        case 'csv':
+            return files => quoter(files).join(',');
+        case 'json':
+            return files => JSON.stringify(files);
+    }
+}
 function run() {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function* () {
@@ -4528,9 +4549,14 @@ function run() {
             const client = new github_1.GitHub(core.getInput('token', { required: true }));
             const format = core.getInput('format', { required: true });
             const filter = core.getMultilineInput('filter', { required: true }) || '*';
+            const quotes = (core.getInput('quotes', {}) || 'none');
             // Ensure that the format parameter is set properly.
             if (format !== 'space-delimited' && format !== 'csv' && format !== 'json') {
                 core.setFailed(`Format must be one of 'string-delimited', 'csv', or 'json', got '${format}'.`);
+            }
+            // Ensure that the quotes parameter is set properly.
+            if (quotes !== 'none' && quotes !== 'single' && quotes !== 'double') {
+                core.setFailed(`Quotes must be one of 'none', 'single', or 'double', got '${quotes}'.`);
             }
             // Debug log the payload.
             core.debug(`Payload keys: ${Object.keys(github_1.context.payload)}`);
@@ -4617,7 +4643,8 @@ function run() {
                         break;
                     case 'renamed':
                         renamed.push(filename);
-                        if (file.patch) { // modified renamed files include a patch field
+                        if (file.patch) {
+                            // modified renamed files include a patch field
                             modified.push(filename);
                             addedModified.push(filename);
                         }
@@ -4626,39 +4653,37 @@ function run() {
                         core.setFailed(`One of your files includes an unsupported file status '${file.status}', expected 'added', 'modified', 'removed', or 'renamed'.`);
                 }
             }
-            // Format the arrays of changed files.
-            let allFormatted, addedFormatted, modifiedFormatted, removedFormatted, renamedFormatted, addedModifiedFormatted;
-            switch (format) {
-                case 'space-delimited':
-                    // If any of the filenames have a space in them, then fail the step.
-                    for (const file of all) {
-                        if (file.includes(' '))
-                            core.setFailed(`One of your files includes a space. Consider using a different output format or removing spaces from your filenames.`);
-                    }
-                    allFormatted = all.join(' ');
-                    addedFormatted = added.join(' ');
-                    modifiedFormatted = modified.join(' ');
-                    removedFormatted = removed.join(' ');
-                    renamedFormatted = renamed.join(' ');
-                    addedModifiedFormatted = addedModified.join(' ');
-                    break;
-                case 'csv':
-                    allFormatted = all.join(',');
-                    addedFormatted = added.join(',');
-                    modifiedFormatted = modified.join(',');
-                    removedFormatted = removed.join(',');
-                    renamedFormatted = renamed.join(',');
-                    addedModifiedFormatted = addedModified.join(',');
-                    break;
-                case 'json':
-                    allFormatted = JSON.stringify(all);
-                    addedFormatted = JSON.stringify(added);
-                    modifiedFormatted = JSON.stringify(modified);
-                    removedFormatted = JSON.stringify(removed);
-                    renamedFormatted = JSON.stringify(renamed);
-                    addedModifiedFormatted = JSON.stringify(addedModified);
-                    break;
+            if (format === 'space-delimited') {
+                // If any of the filenames have a space in them, then fail the step.
+                for (const file of all) {
+                    if (file.includes(' '))
+                        core.setFailed(`One of your files includes a space. Consider using a different output format or removing spaces from your filenames.`);
+                }
             }
+            if (quotes === 'single') {
+                // If any of the filenames have a single quote in it, then fail the step.
+                for (const file of all) {
+                    if (file.includes("'")) {
+                        core.setFailed(`One of your files includes a single quote. Consider using a different quotes option or removing single quotes from your filenames.`);
+                    }
+                }
+            }
+            if (quotes === 'double') {
+                // If any of the filenames have a double quote in it, then fail the step.
+                for (const file of all) {
+                    if (file.includes('"')) {
+                        core.setFailed(`One of your files includes a double quote. Consider using a different quotes option or removing double quotes from your filenames.`);
+                    }
+                }
+            }
+            // Format the arrays of changed files.
+            const formatter = getFormatter(format, quotes);
+            const allFormatted = formatter(all);
+            const addedFormatted = formatter(added);
+            const modifiedFormatted = formatter(modified);
+            const removedFormatted = formatter(removed);
+            const renamedFormatted = formatter(renamed);
+            const addedModifiedFormatted = formatter(addedModified);
             // Log the output values.
             core.info(`All: ${allFormatted}`);
             core.info(`Added: ${addedFormatted}`);
