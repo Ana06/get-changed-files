@@ -30,7 +30,7 @@ const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
 const minimatch_1 = __importDefault(__nccwpck_require__(3973));
 function run() {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e, _f;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             // Create GitHub client with the API token.
@@ -53,6 +53,10 @@ function run() {
                 case 'pull_request':
                     base = (_b = (_a = github_1.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.base) === null || _b === void 0 ? void 0 : _b.sha;
                     head = (_d = (_c = github_1.context.payload.pull_request) === null || _c === void 0 ? void 0 : _c.head) === null || _d === void 0 ? void 0 : _d.sha;
+                    break;
+                case 'merge_group':
+                    base = (_e = github_1.context.payload.merge_group) === null || _e === void 0 ? void 0 : _e.base_sha;
+                    head = (_f = github_1.context.payload.merge_group) === null || _f === void 0 ? void 0 : _f.head_sha;
                     break;
                 case 'push':
                     base = github_1.context.payload.before;

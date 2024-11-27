@@ -33,6 +33,10 @@ async function run(): Promise<void> {
         base = context.payload.pull_request?.base?.sha
         head = context.payload.pull_request?.head?.sha
         break
+      case 'merge_group':
+        base = context.payload.merge_group?.base_sha
+        head = context.payload.merge_group?.head_sha
+        break
       case 'push':
         base = context.payload.before
         head = context.payload.after
